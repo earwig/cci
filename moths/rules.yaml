@@ -1,0 +1,84 @@
+rules:
+  # basic wikitext syntax rules
+  heading:
+    type: regex
+    match: '(={1,6})\s*[\w ]{1,30}\s*\1'
+  category:
+    type: regex
+    match: '\[\[(category|categorie):\s*[\w ().]{1,50}(\|[\w *]{1,30})?\]\]'
+  interwiki:
+    type: regex
+    match: '\[\[\w{1,4}:[-\w ]{1,40}\]\]'
+  template:
+    type: regex
+    pre: deref
+    match:
+      - '\{\{[^\}]{1,30}\}\}'
+      - '\{\{\w{1,20}'
+      - '\}\}'
+      - '\{\{[^\}]{1,30}\}\}\{\{\w{1,20}'
+      - '\s*\|\s*\w{1,20}\s*=\s*.{,40}'
+      - '\s*\|\s*(infraordo)(\s*=)?\s*.{,40}'
+      - '\s*\|\s*image\s*=\s*.{,100}'
+  external_link:
+    type: regex
+    pre: deextlink
+    match: '\*\s*'
+
+  # taxa lists
+  see_text:
+    type: regex
+    match: 'see text\.?'
+  taxa_list:
+    type: regex
+    match: >-
+      \*\s*('')?(\[\[)?[A-Z][a-z-]{,30}(\s[a-z-]{,30})?(\]\])?('')?
+      (\s*(<small>\s*)?\(?[\w\s,&.]{,40},?\s*\[?\d{,4}\]?\)?(\s*</small>)?)?
+      (\s*\(misspelling\s[a-z-]{,30}\))?\.?
+    flags: [IGNORECASE, VERBOSE]
+
+  # basic prose
+  basic_lead:
+    type: regex
+    pre: strip
+    sub:
+      - ['\s*\.\s*', ' ']
+    max: 1
+    match: >-
+      \s*[A-Z][a-z-]{,30}(\s[a-z-]{,30})?(, the [\w\s-]{,30},)? is a
+      (((species|genus) of )?(s )?(in|of) the (genus|family|subfamily)|of [\w\s]{,35}in the within the)
+      (it contains only one species, [A-Z][a-z-]{,30}\s[a-z-]{,30}, which)?
+      ?(it was described by [\w\s,&.]{,40} in \d{4})?
+      ?((it )?is ((found|known) (in|on|from)|endemic to) (the [\w\s]{,20} area in )?.{,30}
+      ?((including and possibly limited to|where it has been recorded from) .{,30})?)?
+      ?(the type locality (is|are) the .{,30})?
+
+  basic_size:
+    type: regex
+    match:
+      - 'the ((\[\[)?wingspan(\]\])|length of the forewings)? is [\d.-]{,10}(\s|&nbsp;)*[mc]m\.'
+
+  basic_diet:
+    type: regex
+    pre: strip
+    match: >-
+      the larvae (possibly )?feed on (the leaves of |species)?.
+
+  # bibliography
+  refs:
+    type: refs
+    journals:
+      - bulletin of the american museum of natural history
+    titles:
+      - 'generic revision of the dioptinae (lepidoptera: noctuoidea: notodontidae) part 1: dioptini'
+
+whitelist: |
+  The scientific publications of Dr László Gozmány (1921-2006) on Lepidoptera with a revised bibliography and an annotated list of taxon names he proposed
+  2015: An updated checklist of Thyatirinae (Lepidoptera, Drepanidae) from China, with descriptions of one new species. zootaxa 2015 3941.
+  A review of the South American ''Elachistidae'' s. str. (Lepidoptera: Gelechioidea), with descriptions of 15 new species. ''Steenstrupia'' '''25 (2)''': 159-193
+  New species of the genera Perittia and Stephensia from Siberia and Far East. Vestnik Zoologii.
+  New and poorly known Epermeniidae from the Neotropis, Australis, Orientalis and Palaearctic Regions (Lepidoptera). ''Beiträge zur Entomologie''
+  Genus ''Agonopterix'' Hübner (Lepidoptera: Elachistidae: Depressariinae) from China with descriptions of four new species. ''Entomotaxonomia'', '''29'''(3): 215-222
+  2005, A review of the genus ''Exaeretia'' from China, with descriptions of four new species (Lepidoptera: Depressariidae), ''Oriental Insects''
+  Three new species, two newly recorded species and one newly recorded genus of Lithocolletinae (Lepidoptera: Gracillariidae) from China
+  2007: The Thyatiridae of Eurasia including the Sundaland and New Guinea (Lepidoptera). ''Esperiana Buchreihe zur Entomologie'' '''13''': 1-683
