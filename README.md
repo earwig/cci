@@ -9,7 +9,7 @@ on Wikipedia.
     python3 -m venv venv
     . venv/bin/activate
     pip install --upgrade pip setuptools wheel
-    pip install colorama mwparserfromhell pywikiapi PyYAML requests tqdm
+    pip install PyYAML colorama jinja2 mwparserfromhell pywikiapi requests tqdm
 
 ## Usage
 

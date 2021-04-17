@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>CCI Cull Viewer :: {{ case }} | batch {{ batch }} | page {{ page }}</title>
+    <link rel="stylesheet" href="/cci/static/viewer.css">
+    <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/pako/2.0.3/pako.min.js" integrity="sha512-yJSo0YTQvvGOqL2au5eH0W4K/0FI0sTJuyHjiHkh0O31Lzlb814P0fDXtuEtzOj13lOBZ9j99BjqFx4ASz9pGA==" crossorigin="anonymous"></script>
+    <script src="/cci/static/viewer.js"></script>
+</head>
+<body>
+    <header>
+        <h1>
+            CCI Cull Viewer:
+            <a href="https://en.wikipedia.org/wiki/{{ prefix | titleencode }}{{ name | titleencode }}">{{ case }}</a>,
+            batch {{ batch }},
+            page <a href="https://en.wikipedia.org/wiki/{{ title | titleencode }}">{{ page }}</a>
+        </h1>
+    </header>
+    <noscript>This page requires JavaScript to load.</noscript>
+    <main></main>
+    <template id="toc-item-tmpl">
+        <li><a></a></li>
+    </template>
+    <template id="section-tmpl">
+        <section class="section">
+            <h2></h2>
+        </section>
+    </template>
+    <template id="page-tmpl">
+        <section class="page">
+            <h3><a href="http://en.wikipedia.org/wiki/"></a></h3>
+        </section>
+    </template>
+    <template id="edit-tmpl">
+        <section class="edit">
+            <h4><a href="http://en.wikipedia.org/wiki/Special:Diff/"></a></h4>
+            <table>
+                <tr>
+                    <th>Line</th>
+                    <th>Status</th>
+                    <th>Rules</th>
+                    <th>Text</th>
+                </tr>
+            </table>
+        </section>
+    </template>
+    <template id="line-tmpl">
+        <tr>
+            <td class="line-index"></td>
+            <td class="line-status"></td>
+            <td class="line-rules"></td>
+            <td class="line-text"></td>
+        </tr>
+    </template>
+<script>
+    load('{{ path }}');
+</script>
+</body>
+</html>

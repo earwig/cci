@@ -6,6 +6,8 @@ import json
 from pathlib import Path
 import re
 
+import jinja2
+
 from . import utils
 from .case import Edit
 
@@ -57,9 +59,23 @@ def apply_cull(root: Path, case_name: str, case_page: str, batch: int):
         'summary': summary,
     }))
 
+    env = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(Path(__file__).parent / 'templates'),
+        autoescape=jinja2.select_autoescape(['html', 'xml'])
+    )
+    env.filters['titleencode'] = lambda title: title.replace(' ', '_')
+    template = env.get_template('viewer.html')
+
     with html_path.open('w') as htmlfp:
-        info = json.dumps([edit.dump() for edit in edits], indent=4).replace('<', '&lt;')
-        htmlfp.write(f'<pre>\n{info}\n</pre>')
+        htmlfp.write(template.render(
+            case=root.name,
+            name=case_name,
+            page=case_page,
+            prefix=utils.CCI_PREFIX,
+            title=title,
+            batch=str(batch),
+            path=cull_path.name,
+        ))
 
 def main():
     parser = argparse.ArgumentParser(description='Apply a cull to a case page and generate a diff')
