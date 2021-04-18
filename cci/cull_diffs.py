@@ -31,9 +31,10 @@ def cull_diffs(
     rules_path: Path,
     cull_root: Path,
     filters: Optional[Filters] = None,
-    batch: Optional[int] = None,
+    batch: Optional[str] = None,
     verbose: bool = False,
     debug: bool = False,
+    include_all: bool = False,
     hide_culled: bool = False,
     dump_rules: bool = False,
 ):
@@ -45,7 +46,7 @@ def cull_diffs(
 
     logging.info(f'analyzing {len(edits)} diffs to cull...')
     it = edits if verbose else tqdm.tqdm(edits, unit='diffs')
-    culled = {}
+    result = {}
     for edit in it:
         if filters is not None:
             filtered = False
@@ -67,12 +68,13 @@ def cull_diffs(
         except Exception:
             logging.exception(f'Failed to cull edit: {edit}')
             continue
-        if edit.culled:
-            culled.setdefault(edit.casepage, []).append(edit)
+        if edit.culled or include_all:
+            result.setdefault(edit.casepage, []).append(edit)
 
     logging.info(f'culled {sum(1 for edit in edits if edit.culled)} diffs')
-    for index, page_edits in culled.items():
-        logging.info(f'- culled {len(page_edits)} diffs in case page {index}')
+    for index, page_edits in result.items():
+        num_culled = sum(1 for edit in page_edits if edit.culled)
+        logging.info(f'- culled {num_culled} diffs in case page {index}')
 
     if dump_rules:
         rules = {}
@@ -101,9 +103,9 @@ def cull_diffs(
             print('No unmatched lines')
 
     if batch:
-        cull_dir = cull_root / f'batch-{batch:02}'
+        cull_dir = cull_root / f'batch-{batch.zfill(2)}'
         cull_dir.mkdir(parents=True, exist_ok=True)
-        for index, page_edits in culled.items():
+        for index, page_edits in result.items():
             cull_path = cull_dir / f'page-{index}.json.gz'
             with gzip.open(cull_path, 'wt') as fp:
                 json.dump([edit.dump() for edit in page_edits], fp)
@@ -111,7 +113,7 @@ def cull_diffs(
 def _cull_edit(edit: Edit, rules: dict, verbose: bool, debug: bool, hide_culled: bool):
     before_lines = set(edit.before.raw.splitlines())
     lines = [
-        Line(index=i, raw=line, text=line.strip())
+        Line(index=i, raw=line, text=_strip_line(line))
         for i, line in enumerate(edit.after.raw.splitlines(), 1)
         if line.strip() and line not in before_lines
     ]
@@ -121,6 +123,8 @@ def _cull_edit(edit: Edit, rules: dict, verbose: bool, debug: bool, hide_culled:
     for line in lines:
         for item in rules['whitelist']:
             if item in line.text:
+                if debug:
+                    logging.info(f'whitelist match for {item!r} against text {line.text!r}')
                 line.text = line.text.replace(item, '')
                 line.rules.append(CullRule('whitelist', item))
 
@@ -147,6 +151,9 @@ def _cull_edit(edit: Edit, rules: dict, verbose: bool, debug: bool, hide_culled:
                 continue
             print(line)
         print()
+
+def _strip_line(text: str) -> str:
+    return text.strip().replace('\u200e', '')
 
 def _match_rule(line: Line, name: str, rule: dict, debug: bool) -> Optional[CullRule]:
     if rule['type'] == 'regex':
@@ -259,9 +266,10 @@ def main():
     filt.add_argument('-d', '--diff', dest='diffs', metavar='REVID', action='append', type=int,
                       help='Examine these diff(s)')
     outp = parser.add_argument_group('output')
-    outp.add_argument('-b', '--batch', metavar='NUM', type=int, help='Batch number')
+    outp.add_argument('-b', '--batch', metavar='NAME', required=True, help='Batch number or name')
     outp.add_argument('-v', '--verbose', action='store_true', help='Show details')
     outp.add_argument('-g', '--debug', action='store_true', help='Show even more details')
+    outp.add_argument('-a', '--all', action='store_true', help='Include unculled diffs in output')
     outp.add_argument('--hide-culled', action='store_true', help='Hide culled lines')
     outp.add_argument('--dump-rules', action='store_true', help='Dump matched rule info')
     args = parser.parse_args()
@@ -280,6 +288,7 @@ def main():
         batch=args.batch,
         verbose=args.verbose,
         debug=args.debug,
+        include_all=args.all,
         hide_culled=args.hide_culled,
         dump_rules=args.dump_rules,
     )

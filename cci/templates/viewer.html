@@ -2,17 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>CCI Cull Viewer :: {{ case }} | batch {{ batch }} | page {{ page }}</title>
-    <link rel="stylesheet" href="/cci/static/viewer.css">
+    <title>CCI Diff Viewer :: {{ case }} | {{ batch }} | page {{ page }}</title>
+    <link rel="stylesheet" href="{{ static_url('viewer.css') }}">
     <script src="https://tools-static.wmflabs.org/cdnjs/ajax/libs/pako/2.0.3/pako.min.js" integrity="sha512-yJSo0YTQvvGOqL2au5eH0W4K/0FI0sTJuyHjiHkh0O31Lzlb814P0fDXtuEtzOj13lOBZ9j99BjqFx4ASz9pGA==" crossorigin="anonymous"></script>
-    <script src="/cci/static/viewer.js"></script>
+    <script src="{{ static_url('viewer.js') }}"></script>
 </head>
 <body>
     <header>
         <h1>
-            CCI Cull Viewer:
+            CCI Diff Viewer:
             <a href="https://en.wikipedia.org/wiki/{{ prefix | titleencode }}{{ name | titleencode }}">{{ case }}</a>,
-            batch {{ batch }},
+            {{ batch }},
             page <a href="https://en.wikipedia.org/wiki/{{ title | titleencode }}">{{ page }}</a>
         </h1>
     </header>
@@ -20,6 +20,19 @@
     <main></main>
     <template id="toc-item-tmpl">
         <li><a></a></li>
+    </template>
+    <template id="options-tmpl">
+        <div class="options">
+            <h2>Options</h2>
+            <div>
+                <input id="show-culled" type="checkbox" checked>
+                <label for="show-culled">Show culled</label>
+            </div>
+            <div>
+                <input id="show-live" type="checkbox" checked>
+                <label for="show-live">Show live (unculled/unchecked)</label>
+            </div>
+        </div>
     </template>
     <template id="section-tmpl">
         <section class="section">

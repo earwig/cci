@@ -3,38 +3,65 @@ rules:
   heading:
     type: regex
     match: '(={1,6})\s*[\w ]{1,30}\s*\1'
+
   category:
     type: regex
     match: '\[\[(category|categorie):\s*[\w ().]{1,50}(\|[\w *]{1,30})?\]\]'
+
   interwiki:
     type: regex
     match: '\[\[\w{1,4}:[-\w ]{1,40}\]\]'
+
   template:
     type: regex
     pre: deref
     match:
-      - '\{\{[^\}]{1,30}\}\}'
-      - '\{\{\w{1,20}'
+      - '\{\{[^\}]{1,50}\}\}'
+      - '\{\{[\w\s_]{1,30}'
       - '\}\}'
       - '\{\{[^\}]{1,30}\}\}\{\{\w{1,20}'
-      - '\s*\|\s*\w{1,20}\s*=\s*.{,40}'
+      - '\s*\|\s*[\w\s]{1,30}\s*=\s*.{,40}'
       - '\s*\|\s*(infraordo)(\s*=)?\s*.{,40}'
-      - '\s*\|\s*image\s*=\s*.{,100}'
+      - '\s*\|\s*(image|binomial_authority)\s*=\s*.{,100}'
+
   external_link:
     type: regex
     pre: deextlink
     match: '\*\s*'
 
+  image:
+    type: regex
+    match: '(\[\[)?(image|file):[^|\]]{,50}\|[^\]]{,100}(\]\])?'
+
+  image_caption:
+    type: regex
+    pre: strip
+    sub:
+      - ['[\s\d.]+', '']
+    match: >-
+      \|\s*image_caption\s*=\s*.{,30}
+
+  references:
+    type: regex
+    match: '<references/>'
+
+  gallery:
+    type: regex
+    match: '</?gallery>'
+
   # taxa lists
   see_text:
     type: regex
     match: 'see text\.?'
+
   taxa_list:
     type: regex
+    sub:
+      - ["'+", '']
     match: >-
-      \*\s*('')?(\[\[)?[A-Z][a-z-]{,30}(\s[a-z-]{,30})?(\]\])?('')?
-      (\s*(<small>\s*)?\(?[\w\s,&.]{,40},?\s*\[?\d{,4}\]?\)?(\s*</small>)?)?
-      (\s*\(misspelling\s[a-z-]{,30}\))?\.?
+      \*+\s*(\[\[)?[A-Z][\w-]{,30}(\s\(?[\w-]{,30}\)?)?(\s\w{,10}\.)?(\s[\w-]{,30})?(\]\])?
+      (\s*(<small>\s*)?\(?[\w\s,&.-]{,40},?\s*\[?\d{,4}\]?\)?(\s*</?small>)?)?
+      (\s*[([][\w\s,():-]{,30}[\])])?\.?:?
     flags: [IGNORECASE, VERBOSE]
 
   # basic prose
@@ -45,32 +72,60 @@ rules:
       - ['\s*\.\s*', ' ']
     max: 1
     match: >-
-      \s*[A-Z][a-z-]{,30}(\s[a-z-]{,30})?(, the [\w\s-]{,30},)? is a
-      (((species|genus) of )?(s )?(in|of) the (genus|family|subfamily)|of [\w\s]{,35}in the within the)
-      (it contains only one species, [A-Z][a-z-]{,30}\s[a-z-]{,30}, which)?
-      ?(it was described by [\w\s,&.]{,40} in \d{4})?
-      ?((it )?is ((found|known) (in|on|from)|endemic to) (the [\w\s]{,20} area in )?.{,30}
+      \s*(the [\w\s-]{,40}(\(|, ))?[A-Z][\w-]{,30}(\s[\w-]{,30})?\)?(, the [\w\s-]{,30},)? (is|are) a
+      ((species |genus |subfamily |family )?(of )?(s )?(in|of|belonging to) the (genus|family|subfamily)?|of [\w\s]{,35}in the within the)
+      ?(it contains only one species, [A-Z][\w-]{,30}\s[\w-]{,30}, which)?
+      ?(it was described by [\w\s,&.-]{,40} in \d{4})?
+      ?((it )?(is|was|can be)( only)? ((found|known|discovered) (in|on|from)|endemic to) (the [\w\s]{,20} area in )?.{,50}
       ?((including and possibly limited to|where it has been recorded from) .{,30})?)?
-      ?(the type locality (is|are) the .{,30})?
+      ?(the (type locality|habitat) (is|are|consists of) (the )?.{,30})?
+      ?(it consists of the following species:)?
 
-  basic_size:
+  basic_wing:
     type: regex
-    match:
-      - 'the ((\[\[)?wingspan(\]\])|length of the forewings)? is [\d.-]{,10}(\s|&nbsp;)*[mc]m\.'
+    pre: strip
+    match: >-
+      the ?((\[\[)?wingspan(\]\])|length of the forewings)? is( about)? [\d.–−-]{,10}(\s|&nbsp;)*[mc]m\.
+      ?((adults are on wing|the moth flies) (from|in) \w{,12}( (to|and) \w{,12})?\.)?
 
   basic_diet:
     type: regex
     pre: strip
+    match:
+      - '(the )?(larva)?e (possibly )?feed on (the leaves of |species|.{,20})?.'
+      - '(the )?(larva)?e have been recorded on .{,20}.'
+
+  basic_etymology:
+    type: regex
+    pre: strip
     match: >-
-      the larvae (possibly )?feed on (the leaves of |species)?.
+      the species is named for .{,30}.
+
+  basic_list_intro:
+    type: regex
+    pre: strip
+    match: >-
+      this( article)? is a list of( the moths| (the )?[\w\s]{,20}species)?( of family| of the .{,30})?( which (are found in|have been recorded in) .{,30})?\.
+      ?(it also acts as an index to the species articles and forms part of the full .{,30}\.)?
+      ?(subfamilies are listed alphabetically\.)?
+
+  basic_list_intro2:
+    type: regex
+    pre: strip
+    match: >-
+      there are (\w){,30} (recognised )?(sub)?species:
 
   # bibliography
-  refs:
-    type: refs
-    journals:
-      - bulletin of the american museum of natural history
-    titles:
-      - 'generic revision of the dioptinae (lepidoptera: noctuoidea: notodontidae) part 1: dioptini'
+  aut_cite:
+    type: regex
+    # these were all manually checked
+    match: >-
+      \* ?\{\{auth?.{,1200}
+
+  cc_by_sa:
+    type: regex
+    match: >-
+      \{\{CCBYSASource\|.{,400}
 
 whitelist: |
   The scientific publications of Dr László Gozmány (1921-2006) on Lepidoptera with a revised bibliography and an annotated list of taxon names he proposed

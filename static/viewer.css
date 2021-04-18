@@ -24,6 +24,10 @@ body {
     }
 }
 
+section.section {
+    margin-top: 4em;
+}
+
 .edit > table {
     padding: 0.5em 0;
     background-color: #f8f9fa;
@@ -50,12 +54,16 @@ body {
     overflow-wrap: anywhere;
 }
 
+.line-text.live {
+    background-color: #fed7d8;
+}
+
 .line-status.autocull {
     color: #006700;
 }
 
 .line-status.live {
-    color: #780000;
+    color: #BC0102;
     font-weight: bold;
 }
 

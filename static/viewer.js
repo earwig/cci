@@ -15,7 +15,7 @@ function load(path) {
         collapsor.classList.add('collapse');
         collapsor.href = '';
         collapsor.textContent = '[-]';
-        collapsor.onclick = e => {
+        collapsor.addEventListener('click', e => {
             e.preventDefault();
             const contents = e.target.parentElement.parentElement.children;
             const collapse = e.target.textContent == '[-]';
@@ -25,8 +25,17 @@ function load(path) {
                 }
             }
             e.target.textContent = collapse ? '[+]' : '[-]';
-        }
+        });
         return collapsor;
+    };
+
+    const setFilter = function(status, value) {
+        for (const row of document.querySelectorAll('.edit tr')) {
+            const cell = row.querySelector('.line-status');
+            if (cell !== null && cell.textContent == status) {
+                row.hidden = !value;
+            }
+        }
     };
 
     const colors = {};
@@ -46,6 +55,7 @@ function load(path) {
     const renderEdits = function(edits) {
         const toc = document.createElement('ul');
         const tocItemTmpl = document.getElementById('toc-item-tmpl');
+        const optionsTmpl = document.getElementById('options-tmpl');
         const sectionTmpl = document.getElementById('section-tmpl');
         const pageTmpl = document.getElementById('page-tmpl');
         const editTmpl = document.getElementById('edit-tmpl');
@@ -54,6 +64,8 @@ function load(path) {
         toc.classList.add('toc');
         main.innerHTML = '';
         main.append(toc);
+
+        main.append(optionsTmpl.content.cloneNode(true));
 
         let curSecName = null, curSecElem = null, sectionCtr = 1;
         let curPageName = null, curPageElem = null;
@@ -93,10 +105,11 @@ function load(path) {
             edit.delta.lines.forEach(line => {
                 const row = lineTmpl.content.cloneNode(true).children[0];
                 row.querySelector('.line-index').textContent = line.index;
-                row.querySelector('.line-text').textContent = line.text;
                 const lineStatus = row.querySelector('.line-status');
                 lineStatus.textContent = line.culled ? 'autocull' : 'live';
                 lineStatus.classList.add(lineStatus.textContent);
+                row.querySelector('.line-text').textContent = line.text;
+                row.querySelector('.line-text').classList.add(lineStatus.textContent);
                 line.rules.forEach(rule => {
                     let it;
                     if (rule.detail) {
@@ -113,6 +126,23 @@ function load(path) {
             });
             curPageElem.append(item);
         });
+
+        document.getElementById('show-culled').addEventListener('change', e => {
+            setFilter('autocull', e.currentTarget.checked);
+        });
+        document.getElementById('show-live').addEventListener('change', e => {
+            setFilter('live', e.currentTarget.checked);
+        });
+
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.get('culled') === '0') {
+            document.getElementById('show-culled').checked = false;
+            setFilter('autocull', false);
+        }
+        if (urlParams.get('live') === '0') {
+            document.getElementById('show-live').checked = false;
+            setFilter('live', false);
+        }
     };
 
     fetch(path).then(resp => {
